@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Festival DBMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light-bg: #f8fafc;
+            --light-surface: #ffffff;
+            --light-card: #f1f5f9;
+            --light-border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--light-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.5rem;
+        }
+        
+        nav ul li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Main Content */
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            min-height: 600px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Titles */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-border);
+        }
+        
+        .section-title i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--light-surface) 0%, var(--light-card) 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid var(--light-border);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        
+        .stat-card p {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        /* Tables */
+        .table-container {
+            background: var(--light-surface);
+            border-radius: 12px;
+            border: 1px solid var(--light-border);
+            overflow: hidden;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th {
+            background: var(--light-card);
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--light-border);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--light-border);
+            color: var(--text-secondary);
+        }
+        
+        table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        table tr:hover {
+            background: var(--light-bg);
+        }
+        
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--light-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Messages */
+        .message {
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        /* Tabs */
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--light-card);
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .subtab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .subtab-content.active {
+            display: block;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        
+        /* Footer */
+        footer {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--light-border);
+            padding: 2rem 0;
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .content {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-film"></i> Film Festival DBMS
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" class="active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                        <li><a href="#" data-tab="movies"><i class="fas fa-video"></i> Movies</a></li>
+                        <li><a href="#" data-tab="directors"><i class="fas fa-user-tie"></i> Directors</a></li>
+                        <li><a href="#" data-tab="festivals"><i class="fas fa-trophy"></i> Festivals</a></li>
+                        <li><a href="#" data-tab="actors"><i class="fas fa-theater-masks"></i> Actors</a></li>
+                        <li><a href="#" data-tab="awards"><i class="fas fa-award"></i> Awards</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="message-container"></div>
+        
+        <div class="content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    <h2>Dashboard Overview</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-film"></i>
+                        <h3 id="movies-count">0</h3>
+                        <p>Total Movies</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-tie"></i>
+                        <h3 id="directors-count">0</h3>
+                        <p>Directors</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-trophy"></i>
+                        <h3 id="festivals-count">0</h3>
+                        <p>Festivals</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-theater-masks"></i>
+                        <h3 id="actors-count">0</h3>
+                        <p>Actors</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-award"></i>
+                        <h3 id="awards-count">0</h3>
+                        <p>Awards</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Recent Movies</h3>
+                <div class="table-container">
+                    <table id="recent-movies">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Genre</th>
+                                <th>Director</th>
+                                <th>Festival</th>
+                                <th>Year</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Movies Tab -->
+            <div id="movies" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-video"></i>
+                    <h2>Movies Management</h2>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-subtab="movies-view">
+                        <i class="fas fa-list"></i> View Movies
+                    </button>
+                    <button class="tab-button" data-subtab="movies-add">
+                        <i class="fas fa-plus"></i> Add Movie
+                    </button>
+                </div>
+                
+                <div id="movies-view" class="subtab-content active">
+                    <div class="table-container">
+                        <table id="movies-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Genre</th>
+                                    <th>Release Year</th>
+                                    <th>Director</th>
+                                    <th>Festival</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="movies-add" class="subtab-content">
+                    <form id="add-movie-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="movie-title"><i class="fas fa-heading"></i> Title *</label>
+                            <input type="text" id="movie-title" name="movie-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-genre"><i class="fas fa-tags"></i> Genre</label>
+                            <input type="text" id="movie-genre" name="movie-genre">
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-release-year"><i class="fas fa-calendar"></i> Release Year</label>
+                            <input type="number" id="movie-release-year" name="movie-release-year" min="1900" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-director"><i class="fas fa-user-tie"></i> Director</label>
+                            <select id="movie-director" name="movie-director">
+                                <option value="">Select Director</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-festival"><i class="fas fa-trophy"></i> Festival</label>
+                            <select id="movie-festival" name="movie-festival">
+                                <option value="">Select Festival</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Movie
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Directors Tab -->
+            <div id="directors" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-user-tie"></i>
+                    <h2>Directors Management</h2>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-subtab="directors-view">
+                        <i class="fas fa-list"></i> View Directors
+                    </button>
+                    <button class="tab-button" data-subtab="directors-add">
+                        <i class="fas fa-plus"></i> Add Director
+                    </button>
+                </div>
+                
+                <div id="directors-view" class="subtab-content active">
+                    <div class="table-container">
+                        <table id="directors-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Nationality</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="directors-add" class="subtab-content">
+                    <form id="add-director-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="director-name"><i class="fas fa-user"></i> Director Name *</label>
+                            <input type="text" id="director-name" name="director-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="director-nationality"><i class="fas fa-globe"></i> Nationality</label>
+                            <input type="text" id="director-nationality" name="director-nationality">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Director
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Festivals Tab -->
+            <div id="festivals" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-trophy"></i>
+                    <h2>Festivals Management</h2>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-subtab="festivals-view">
+                        <i class="fas fa-list"></i> View Festivals
+                    </button>
+                    <button class="tab-button" data-subtab="festivals-add">
+                        <i class="fas fa-plus"></i> Add Festival
+                    </button>
+                </div>
+                
+                <div id="festivals-view" class="subtab-content active">
+                    <div class="table-container">
+                        <table id="festivals-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Location</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="festivals-add" class="subtab-content">
+                    <form id="add-festival-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="festival-name"><i class="fas fa-trophy"></i> Festival Name *</label>
+                            <input type="text" id="festival-name" name="festival-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="festival-location"><i class="fas fa-map-marker-alt"></i> Location</label>
+                            <input type="text" id="festival-location" name="festival-location">
+                        </div>
+                        <div class="form-group">
+                            <label for="festival-start-date"><i class="fas fa-calendar-plus"></i> Start Date</label>
+                            <input type="date" id="festival-start-date" name="festival-start-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="festival-end-date"><i class="fas fa-calendar-minus"></i> End Date</label>
+                            <input type="date" id="festival-end-date" name="festival-end-date">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Festival
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Actors Tab -->
+            <div id="actors" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-theater-masks"></i>
+                    <h2>Actors Management</h2>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-subtab="actors-view">
+                        <i class="fas fa-list"></i> View Actors
+                    </button>
+                    <button class="tab-button" data-subtab="actors-add">
+                        <i class="fas fa-plus"></i> Add Actor
+                    </button>
+                </div>
+                
+                <div id="actors-view" class="subtab-content active">
+                    <div class="table-container">
+                        <table id="actors-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Gender</th>
+                                    <th>Nationality</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="actors-add" class="subtab-content">
+                    <form id="add-actor-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="actor-name"><i class="fas fa-user"></i> Actor Name *</label>
+                            <input type="text" id="actor-name" name="actor-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="actor-gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                            <select id="actor-gender" name="actor-gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="actor-nationality"><i class="fas fa-globe"></i> Nationality</label>
+                            <input type="text" id="actor-nationality" name="actor-nationality">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Actor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Awards Tab -->
+            <div id="awards" class="tab-content">
+                <div class="section-title">
+                    <i class="fas fa-award"></i>
+                    <h2>Awards Management</h2>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-subtab="awards-view">
+                        <i class="fas fa-list"></i> View Awards
+                    </button>
+                    <button class="tab-button" data-subtab="awards-add">
+                        <i class="fas fa-plus"></i> Add Award
+                    </button>
+                </div>
+                
+                <div id="awards-view" class="subtab-content active">
+                    <div class="table-container">
+                        <table id="awards-table">
+                            <thead>
+                                <tr>
+                                    <th>Award Name</th>
+                                    <th>Year</th>
+                                    <th>Movie</th>
+                                    <th>Festival</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="awards-add" class="subtab-content">
+                    <form id="add-award-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="award-name"><i class="fas fa-award"></i> Award Name *</label>
+                            <input type="text" id="award-name" name="award-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="award-year"><i class="fas fa-calendar"></i> Year</label>
+                            <input type="number" id="award-year" name="award-year" min="1900" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label for="award-movie"><i class="fas fa-film"></i> Movie</label>
+                            <select id="award-movie" name="award-movie">
+                                <option value="">Select Movie</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Award
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modals -->
+    <div id="edit-director-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Director</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="edit-director-form" class="form-grid">
+                <input type="hidden" id="edit-director-id">
+                <div class="form-group">
+                    <label for="edit-director-name">Director Name *</label>
+                    <input type="text" id="edit-director-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-director-nationality">Nationality</label>
+                    <input type="text" id="edit-director-nationality">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary">Update Director</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-festival-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Festival</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="edit-festival-form" class="form-grid">
+                <input type="hidden" id="edit-festival-id">
+                <div class="form-group">
+                    <label for="edit-festival-name">Festival Name *</label>
+                    <input type="text" id="edit-festival-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-festival-location">Location</label>
+                    <input type="text" id="edit-festival-location">
+                </div>
+                <div class="form-group">
+                    <label for="edit-festival-start-date">Start Date</label>
+                    <input type="date" id="edit-festival-start-date">
+                </div>
+                <div class="form-group">
+                    <label for="edit-festival-end-date">End Date</label>
+                    <input type="date" id="edit-festival-end-date">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary">Update Festival</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-movie-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Movie</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="edit-movie-form" class="form-grid">
+                <input type="hidden" id="edit-movie-id">
+                <div class="form-group">
+                    <label for="edit-movie-title">Title *</label>
+                    <input type="text" id="edit-movie-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-movie-genre">Genre</label>
+                    <input type="text" id="edit-movie-genre">
+                </div>
+                <div class="form-group">
+                    <label for="edit-movie-release-year">Release Year</label>
+                    <input type="number" id="edit-movie-release-year" min="1900" max="2030">
+                </div>
+                <div class="form-group">
+                    <label for="edit-movie-director">Director</label>
+                    <select id="edit-movie-director">
+                        <option value="">Select Director</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-movie-festival">Festival</label>
+                    <select id="edit-movie-festival">
+                        <option value="">Select Festival</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary">Update Movie</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-actor-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Actor</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="edit-actor-form" class="form-grid">
+                <input type="hidden" id="edit-actor-id">
+                <div class="form-group">
+                    <label for="edit-actor-name">Actor Name *</label>
+                    <input type="text" id="edit-actor-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-actor-gender">Gender</label>
+                    <select id="edit-actor-gender">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-actor-nationality">Nationality</label>
+                    <input type="text" id="edit-actor-nationality">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary">Update Actor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-award-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Award</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="edit-award-form" class="form-grid">
+                <input type="hidden" id="edit-award-id">
+                <div class="form-group">
+                    <label for="edit-award-name">Award Name *</label>
+                    <input type="text" id="edit-award-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-award-year">Year</label>
+                    <input type="number" id="edit-award-year" min="1900" max="2030">
+                </div>
+                <div class="form-group">
+                    <label for="edit-award-movie">Movie</label>
+                    <select id="edit-award-movie">
+                        <option value="">Select Movie</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <button type="submit" class="btn btn-primary">Update Award</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Film Festival Database Management System &copy; 2024</p>
+        </div>
+    </footer>
+
+    <script>
+        // API Base URL
+        const API_BASE = '/api';
+
+        // DOM elements
+        const tabLinks = document.querySelectorAll('nav a');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const subtabButtons = document.querySelectorAll('.tab-button');
+        const messageContainer = document.getElementById('message-container');
+        const modals = document.querySelectorAll('.modal');
+        
+        // Show message function
+        function showMessage(message, type = 'success') {
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            messageContainer.innerHTML = `
+                <div class="message ${type}">
+                    <i class="fas ${icon}"></i>
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+        
+        // API functions
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'API request failed');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        // Tab navigation
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all tabs
+                tabLinks.forEach(l => l.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                link.classList.add('active');
+                const tabId = link.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Load data for the selected tab
+                if (tabId === 'dashboard') {
+                    updateDashboardStats();
+                    loadRecentMovies();
+                } else if (tabId === 'directors') {
+                    loadDirectors();
+                } else if (tabId === 'festivals') {
+                    loadFestivals();
+                } else if (tabId === 'movies') {
+                    loadMovies();
+                    populateDropdowns();
+                } else if (tabId === 'actors') {
+                    loadActors();
+                } else if (tabId === 'awards') {
+                    loadAwards();
+                    populateDropdowns();
+                }
+            });
+        });
+        
+        // Sub-tab navigation
+        subtabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const parentTab = button.closest('.tab-content');
+                const subtabId = button.getAttribute('data-subtab');
+                
+                // Remove active class from all subtabs in this parent tab
+                parentTab.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                parentTab.querySelectorAll('.subtab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked subtab
+                button.classList.add('active');
+                parentTab.querySelector(`#${subtabId}`).classList.add('active');
+            });
+        });
+        
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Close modals when clicking outside or on close button
+        modals.forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            const closeBtn = modal.querySelector('.close-modal');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+        
+        // Load directors
+        async function loadDirectors() {
+            try {
+                const directors = await apiCall('/directors');
+                const tableBody = document.querySelector('#directors-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (directors.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="fas fa-user-tie"></i>
+                                <p>No directors found. Add your first director!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                directors.forEach(director => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${director.Director_Name}</td>
+                        <td>${director.Nationality || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-warning action-btn" onclick="openEditDirectorModal(${director.Director_ID}, '${director.Director_Name}', '${director.Nationality || ''}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteDirector(${director.Director_ID})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load directors: ' + error.message, 'error');
+            }
+        }
+        
+        // Load festivals
+        async function loadFestivals() {
+            try {
+                const festivals = await apiCall('/festivals');
+                const tableBody = document.querySelector('#festivals-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (festivals.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-trophy"></i>
+                                <p>No festivals found. Add your first festival!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                festivals.forEach(festival => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${festival.Festival_Name}</td>
+                        <td>${festival.Location || 'N/A'}</td>
+                        <td>${formatDate(festival.Start_Date)}</td>
+                        <td>${formatDate(festival.End_Date)}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-warning action-btn" onclick="openEditFestivalModal(${festival.Festival_ID}, '${festival.Festival_Name}', '${festival.Location || ''}', '${festival.Start_Date || ''}', '${festival.End_Date || ''}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteFestival(${festival.Festival_ID})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load festivals: ' + error.message, 'error');
+            }
+        }
+        
+        // Load movies
+        async function loadMovies() {
+            try {
+                const movies = await apiCall('/movies');
+                const tableBody = document.querySelector('#movies-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (movies.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <i class="fas fa-film"></i>
+                                <p>No movies found. Add your first movie!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                movies.forEach(movie => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${movie.Title}</td>
+                        <td>${movie.Genre || 'N/A'}</td>
+                        <td>${movie.Release_Year || 'N/A'}</td>
+                        <td>${movie.Director_Name || 'N/A'}</td>
+                        <td>${movie.Festival_Name || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-warning action-btn" onclick="openEditMovieModal(${movie.Movie_ID}, '${movie.Title}', '${movie.Genre || ''}', ${movie.Release_Year || ''}, ${movie.Director_ID || ''}, ${movie.Festival_ID || ''})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteMovie(${movie.Movie_ID})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load movies: ' + error.message, 'error');
+            }
+        }
+        
+        // Load actors
+        async function loadActors() {
+            try {
+                const actors = await apiCall('/actors');
+                const tableBody = document.querySelector('#actors-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (actors.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="fas fa-theater-masks"></i>
+                                <p>No actors found. Add your first actor!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                actors.forEach(actor => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${actor.Actor_Name}</td>
+                        <td>${actor.Gender || 'N/A'}</td>
+                        <td>${actor.Nationality || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-warning action-btn" onclick="openEditActorModal(${actor.Actor_ID}, '${actor.Actor_Name}', '${actor.Gender || ''}', '${actor.Nationality || ''}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteActor(${actor.Actor_ID})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load actors: ' + error.message, 'error');
+            }
+        }
+        
+        // Load awards
+        async function loadAwards() {
+            try {
+                const awards = await apiCall('/awards');
+                const tableBody = document.querySelector('#awards-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (awards.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-award"></i>
+                                <p>No awards found. Add your first award!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                awards.forEach(award => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${award.Award_Name}</td>
+                        <td>${award.Year || 'N/A'}</td>
+                        <td>${award.Movie_Title || 'N/A'}</td>
+                        <td>${award.Festival_Name || 'N/A'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-warning action-btn" onclick="openEditAwardModal(${award.Award_ID}, '${award.Award_Name}', ${award.Year || ''}, ${award.Movie_ID || ''})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteAward(${award.Award_ID})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load awards: ' + error.message, 'error');
+            }
+        }
+        
+        // Load recent movies for dashboard
+        async function loadRecentMovies() {
+            try {
+                const data = await apiCall('/dashboard/data');
+                const tableBody = document.querySelector('#recent-movies tbody');
+                tableBody.innerHTML = '';
+                
+                if (data.movies.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-film"></i>
+                                <p>No movies found. Add your first movie!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                data.movies.forEach(movie => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${movie.Title}</td>
+                        <td>${movie.Genre || 'N/A'}</td>
+                        <td>${movie.Director_Name || 'N/A'}</td>
+                        <td>${movie.Festival_Name || 'N/A'}</td>
+                        <td>${movie.Release_Year || 'N/A'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('Failed to load recent movies: ' + error.message, 'error');
+            }
+        }
+        
+        // Update dashboard statistics
+        async function updateDashboardStats() {
+            try {
+                const stats = await apiCall('/dashboard');
+                document.getElementById('movies-count').textContent = stats.movies;
+                document.getElementById('directors-count').textContent = stats.directors;
+                document.getElementById('festivals-count').textContent = stats.festivals;
+                document.getElementById('actors-count').textContent = stats.actors;
+                document.getElementById('awards-count').textContent = stats.awards;
+            } catch (error) {
+                showMessage('Failed to load dashboard stats: ' + error.message, 'error');
+            }
+        }
+        
+        // Populate dropdowns for forms
+        async function populateDropdowns() {
+            try {
+                const [directors, festivals, movies] = await Promise.all([
+                    apiCall('/directors'),
+                    apiCall('/festivals'),
+                    apiCall('/movies')
+                ]);
+                
+                // Populate director dropdowns
+                const directorSelects = [
+                    document.getElementById('movie-director'),
+                    document.getElementById('edit-movie-director'),
+                    document.getElementById('award-movie'),
+                    document.getElementById('edit-award-movie')
+                ];
+                
+                directorSelects.forEach(select => {
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Director</option>';
+                        directors.forEach(director => {
+                            const option = document.createElement('option');
+                            option.value = director.Director_ID;
+                            option.textContent = director.Director_Name;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+                
+                // Populate festival dropdowns
+                const festivalSelects = [
+                    document.getElementById('movie-festival'),
+                    document.getElementById('edit-movie-festival')
+                ];
+                
+                festivalSelects.forEach(select => {
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Festival</option>';
+                        festivals.forEach(festival => {
+                            const option = document.createElement('option');
+                            option.value = festival.Festival_ID;
+                            option.textContent = festival.Festival_Name;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+                
+                // Populate movie dropdowns
+                const movieSelects = [
+                    document.getElementById('award-movie'),
+                    document.getElementById('edit-award-movie')
+                ];
+                
+                movieSelects.forEach(select => {
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Movie</option>';
+                        movies.forEach(movie => {
+                            const option = document.createElement('option');
+                            option.value = movie.Movie_ID;
+                            option.textContent = movie.Title;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+            } catch (error) {
+                showMessage('Failed to populate dropdowns: ' + error.message, 'error');
+            }
+        }
+        
+        // Form submissions
+        document.getElementById('add-director-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                await apiCall('/directors', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        Director_Name: formData.get('director-name'),
+                        Nationality: formData.get('director-nationality')
+                    })
+                });
+                
+                showMessage('Director added successfully!', 'success');
+                e.target.reset();
+                loadDirectors();
+                updateDashboardStats();
+                populateDropdowns();
+            } catch (error) {
+                showMessage('Failed to add director: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('add-festival-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                await apiCall('/festivals', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        Festival_Name: formData.get('festival-name'),
+                        Location: formData.get('festival-location'),
+                        Start_Date: formData.get('festival-start-date'),
+                        End_Date: formData.get('festival-end-date')
+                    })
+                });
+                
+                showMessage('Festival added successfully!', 'success');
+                e.target.reset();
+                loadFestivals();
+                updateDashboardStats();
+                populateDropdowns();
+            } catch (error) {
+                showMessage('Failed to add festival: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('add-movie-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            // Get values and handle empty strings
+            const title = formData.get('movie-title');
+            const genre = formData.get('movie-genre');
+            const releaseYear = formData.get('movie-release-year');
+            const directorId = formData.get('movie-director');
+            const festivalId = formData.get('movie-festival');
+            
+            console.log('Form data:', { title, genre, releaseYear, directorId, festivalId });
+            
+            try {
+                await apiCall('/movies', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        Title: title,
+                        Genre: genre || null,
+                        Release_Year: releaseYear ? parseInt(releaseYear) : null,
+                        Director_ID: directorId || null,
+                        Festival_ID: festivalId || null
+                    })
+                });
+                
+                showMessage('Movie added successfully!', 'success');
+                e.target.reset();
+                loadMovies();
+                updateDashboardStats();
+                populateDropdowns();
+                loadRecentMovies();
+            } catch (error) {
+                showMessage('Failed to add movie: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('add-actor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                await apiCall('/actors', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        Actor_Name: formData.get('actor-name'),
+                        Gender: formData.get('actor-gender'),
+                        Nationality: formData.get('actor-nationality')
+                    })
+                });
+                
+                showMessage('Actor added successfully!', 'success');
+                e.target.reset();
+                loadActors();
+                updateDashboardStats();
+            } catch (error) {
+                showMessage('Failed to add actor: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('add-award-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                await apiCall('/awards', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        Award_Name: formData.get('award-name'),
+                        Year: formData.get('award-year'),
+                        Movie_ID: formData.get('award-movie') || null
+                    })
+                });
+                
+                showMessage('Award added successfully!', 'success');
+                e.target.reset();
+                loadAwards();
+                updateDashboardStats();
+            } catch (error) {
+                showMessage('Failed to add award: ' + error.message, 'error');
+            }
+        });
+        
+        // Edit form submissions
+        document.getElementById('edit-director-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-director-id').value;
+            
+            try {
+                await apiCall(`/directors/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        Director_Name: document.getElementById('edit-director-name').value,
+                        Nationality: document.getElementById('edit-director-nationality').value
+                    })
+                });
+                
+                showMessage('Director updated successfully!', 'success');
+                closeModal('edit-director-modal');
+                loadDirectors();
+                updateDashboardStats();
+                populateDropdowns();
+            } catch (error) {
+                showMessage('Failed to update director: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('edit-festival-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-festival-id').value;
+            
+            try {
+                await apiCall(`/festivals/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        Festival_Name: document.getElementById('edit-festival-name').value,
+                        Location: document.getElementById('edit-festival-location').value,
+                        Start_Date: document.getElementById('edit-festival-start-date').value,
+                        End_Date: document.getElementById('edit-festival-end-date').value
+                    })
+                });
+                
+                showMessage('Festival updated successfully!', 'success');
+                closeModal('edit-festival-modal');
+                loadFestivals();
+                updateDashboardStats();
+                populateDropdowns();
+            } catch (error) {
+                showMessage('Failed to update festival: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('edit-movie-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-movie-id').value;
+            
+            try {
+                await apiCall(`/movies/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        Title: document.getElementById('edit-movie-title').value,
+                        Genre: document.getElementById('edit-movie-genre').value,
+                        Release_Year: document.getElementById('edit-movie-release-year').value,
+                        Director_ID: document.getElementById('edit-movie-director').value || null,
+                        Festival_ID: document.getElementById('edit-movie-festival').value || null
+                    })
+                });
+                
+                showMessage('Movie updated successfully!', 'success');
+                closeModal('edit-movie-modal');
+                loadMovies();
+                updateDashboardStats();
+                populateDropdowns();
+                loadRecentMovies();
+            } catch (error) {
+                showMessage('Failed to update movie: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('edit-actor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-actor-id').value;
+            
+            try {
+                await apiCall(`/actors/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        Actor_Name: document.getElementById('edit-actor-name').value,
+                        Gender: document.getElementById('edit-actor-gender').value,
+                        Nationality: document.getElementById('edit-actor-nationality').value
+                    })
+                });
+                
+                showMessage('Actor updated successfully!', 'success');
+                closeModal('edit-actor-modal');
+                loadActors();
+                updateDashboardStats();
+            } catch (error) {
+                showMessage('Failed to update actor: ' + error.message, 'error');
+            }
+        });
+        
+        document.getElementById('edit-award-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-award-id').value;
+            
+            try {
+                await apiCall(`/awards/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        Award_Name: document.getElementById('edit-award-name').value,
+                        Year: document.getElementById('edit-award-year').value,
+                        Movie_ID: document.getElementById('edit-award-movie').value || null
+                    })
+                });
+                
+                showMessage('Award updated successfully!', 'success');
+                closeModal('edit-award-modal');
+                loadAwards();
+                updateDashboardStats();
+            } catch (error) {
+                showMessage('Failed to update award: ' + error.message, 'error');
+            }
+        });
+        
+        // Open edit modal functions
+        function openEditDirectorModal(id, name, nationality) {
+            document.getElementById('edit-director-id').value = id;
+            document.getElementById('edit-director-name').value = name;
+            document.getElementById('edit-director-nationality').value = nationality || '';
+            openModal('edit-director-modal');
+        }
+        
+        function openEditFestivalModal(id, name, location, startDate, endDate) {
+            document.getElementById('edit-festival-id').value = id;
+            document.getElementById('edit-festival-name').value = name;
+            document.getElementById('edit-festival-location').value = location || '';
+            document.getElementById('edit-festival-start-date').value = startDate || '';
+            document.getElementById('edit-festival-end-date').value = endDate || '';
+            openModal('edit-festival-modal');
+        }
+        
+        function openEditMovieModal(id, title, genre, releaseYear, directorId, festivalId) {
+            document.getElementById('edit-movie-id').value = id;
+            document.getElementById('edit-movie-title').value = title;
+            document.getElementById('edit-movie-genre').value = genre || '';
+            document.getElementById('edit-movie-release-year').value = releaseYear || '';
+            document.getElementById('edit-movie-director').value = directorId || '';
+            document.getElementById('edit-movie-festival').value = festivalId || '';
+            openModal('edit-movie-modal');
+        }
+        
+        function openEditActorModal(id, name, gender, nationality) {
+            document.getElementById('edit-actor-id').value = id;
+            document.getElementById('edit-actor-name').value = name;
+            document.getElementById('edit-actor-gender').value = gender || '';
+            document.getElementById('edit-actor-nationality').value = nationality || '';
+            openModal('edit-actor-modal');
+        }
+        
+        function openEditAwardModal(id, name, year, movieId) {
+            document.getElementById('edit-award-id').value = id;
+            document.getElementById('edit-award-name').value = name;
+            document.getElementById('edit-award-year').value = year || '';
+            document.getElementById('edit-award-movie').value = movieId || '';
+            openModal('edit-award-modal');
+        }
+        
+        // Delete functions
+        async function deleteDirector(id) {
+            if (confirm('Are you sure you want to delete this director?')) {
+                try {
+                    await apiCall(`/directors/${id}`, { method: 'DELETE' });
+                    showMessage('Director deleted successfully!', 'success');
+                    loadDirectors();
+                    updateDashboardStats();
+                    populateDropdowns();
+                } catch (error) {
+                    showMessage('Failed to delete director: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        async function deleteFestival(id) {
+            if (confirm('Are you sure you want to delete this festival?')) {
+                try {
+                    await apiCall(`/festivals/${id}`, { method: 'DELETE' });
+                    showMessage('Festival deleted successfully!', 'success');
+                    loadFestivals();
+                    updateDashboardStats();
+                    populateDropdowns();
+                } catch (error) {
+                    showMessage('Failed to delete festival: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        async function deleteMovie(id) {
+            if (confirm('Are you sure you want to delete this movie?')) {
+                try {
+                    await apiCall(`/movies/${id}`, { method: 'DELETE' });
+                    showMessage('Movie deleted successfully!', 'success');
+                    loadMovies();
+                    updateDashboardStats();
+                    populateDropdowns();
+                    loadRecentMovies();
+                } catch (error) {
+                    showMessage('Failed to delete movie: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        async function deleteActor(id) {
+            if (confirm('Are you sure you want to delete this actor?')) {
+                try {
+                    await apiCall(`/actors/${id}`, { method: 'DELETE' });
+                    showMessage('Actor deleted successfully!', 'success');
+                    loadActors();
+                    updateDashboardStats();
+                } catch (error) {
+                    showMessage('Failed to delete actor: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        async function deleteAward(id) {
+            if (confirm('Are you sure you want to delete this award?')) {
+                try {
+                    await apiCall(`/awards/${id}`, { method: 'DELETE' });
+                    showMessage('Award deleted successfully!', 'success');
+                    loadAwards();
+                    updateDashboardStats();
+                } catch (error) {
+                    showMessage('Failed to delete award: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        // Helper function to format dates
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load initial data
+            updateDashboardStats();
+            loadRecentMovies();
+            loadDirectors();
+            loadFestivals();
+            loadMovies();
+            loadActors();
+            loadAwards();
+            populateDropdowns();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showMessage('Welcome to Film Festival DBMS! Manage your film festival database with ease.', 'success');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
